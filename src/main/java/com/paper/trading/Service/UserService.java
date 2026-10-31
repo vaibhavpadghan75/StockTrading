@@ -1,38 +1,32 @@
 package com.paper.trading.Service;
 
-import java.util.List;
-
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.paper.trading.DTO.UserDto;
-import com.paper.trading.Entity.UserEntity;
+import com.paper.trading.Entity.User;
 import com.paper.trading.Repository.UserRepository;
 
-import jakarta.transaction.TransactionScoped;
 import jakarta.transaction.Transactional;
 
-@Service 
+@Service
 public class UserService {
-    UserRepository userRepository;
-    public UserService(UserRepository userRepository)
-    {
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
-    }
-    @Transactional 
-    public void RegisterUser(UserDto user)
-    {
-        UserEntity userEntity = new UserEntity();
-        userEntity.setUsername(user.getUsername());
-        userEntity.setPassword(user.getPassword());
-        userEntity.setEmail(user.getEmail());
-        userEntity.setContact(user.getContact());
-
-        userRepository.save(userEntity);
+        this.passwordEncoder = passwordEncoder;
     }
 
-    public List<UserDto> getAllUsers()
-    {
-        return userRepository.findAll().stream().map(UserDto::fromEntity).toList();
+    @Transactional
+    public User registerUser(String username, String rawPassword, String email, String contact) {
+//        if (userRepository.findByUsername(username).isPresent()) {
+//            throw new RuntimeException("User alread exists");
+//        }
+
+        String encodedPassword = passwordEncoder.encode(rawPassword);
+        User newUser = new User(username, encodedPassword, email, contact, "ROLE_USER");
+        return userRepository.save(newUser);
     }
-    
+
 }
